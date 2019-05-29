@@ -102,10 +102,12 @@ func (s *Stack) Pop() (interface{}, error) {
 	var res interface{}
 	if s.Len() == 1 {
 		res = s.top.Value
+		s.top.stack = nil
 		s.top = nil
 		s.bottom = nil
 	} else {
 		res = s.top.Value
+		s.top.stack = nil
 		next := s.top.next
 		next.prev = nil
 		s.top.next = nil
