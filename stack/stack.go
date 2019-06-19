@@ -2,9 +2,10 @@ package stack
 
 import (
 	"fmt"
+	"sync"
 )
 
-// stack base on  oubly-linked
+// stack base on  doubly-linked
 
 const (
 	defaultCapacity = 16
@@ -29,6 +30,7 @@ type Node struct {
 type Stack struct {
 	top, bottom    *Node
 	capacity, size int
+	rwMutex        sync.RWMutex
 }
 
 func New(capacity int) *Stack {
@@ -49,6 +51,8 @@ func (s *Stack) Init(capacity int) *Stack {
 }
 
 func (s *Stack) Empty() bool {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
 	if s.size == 0 {
 		return true
 	} else {
@@ -57,6 +61,8 @@ func (s *Stack) Empty() bool {
 }
 
 func (s *Stack) Full() bool {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
 	if s.size == s.capacity {
 		return true
 	} else {
@@ -65,19 +71,27 @@ func (s *Stack) Full() bool {
 }
 
 func (s *Stack) Len() int {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
 	return s.size
 }
 
 func (s *Stack) Top() *Node {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
 	return s.top
 }
 
 func (s *Stack) Bottom() *Node {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
 	return s.bottom
 }
 
 func (s *Stack) Push(element interface{}) (int, error) {
-	if s.Full() == true {
+	s.rwMutex.Lock()
+	defer s.rwMutex.Unlock()
+	if s.size == s.capacity {
 		return -1, fmt.Errorf("stack is  full,cannot push  any  element")
 	}
 
@@ -96,7 +110,9 @@ func (s *Stack) Push(element interface{}) (int, error) {
 }
 
 func (s *Stack) Pop() (interface{}, error) {
-	if s.Empty() == true {
+	s.rwMutex.Lock()
+	defer s.rwMutex.Unlock()
+	if s.size == 0 {
 		return -1, fmt.Errorf("stack is  empty,cannot pop  any  element")
 	}
 	var res interface{}
